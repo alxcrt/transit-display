@@ -1,4 +1,4 @@
-# Smart Transit Display
+# Transit Display
 
 Real-time public transit arrival display built with ESP32-S3 and HUB75 LED matrix panels.
 
