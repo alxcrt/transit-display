@@ -1,0 +1,83 @@
+esphome:
+  name: simple-display
+  friendly_name: Simple Display
+
+esp32:
+  variant: esp32s3
+  flash_size: 8MB
+  framework:
+    type: arduino
+
+external_components:
+  - source: github://avwuff/ESPHome-HUB75-MatrixDisplayWrapper@4fc1f26500b97a39693cd8af4ba2abb75f83ce0b
+
+logger:
+  level: DEBUG
+
+# WiFi needed for time sync
+wifi:
+  # ssid: "YOUR_WIFI_SSID"
+  # password: "YOUR_WIFI_PASSWORD"
+  ap:
+    ssid: "Simple-Display"
+    password: "12345678"
+
+captive_portal:
+
+ota:
+  - platform: esphome
+    password: ""
+
+font:
+  - file: "fonts/Pixolletta8px.ttf"
+    id: pixolletta
+    size: 10
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;!?() '-+/*=%"
+
+display:
+  - platform: hub75_matrix_display
+    id: matrix
+    update_interval: 32ms
+    width: 64
+    height: 32
+    chain_length: 2
+    # GPIO pin mapping for ESP32-S3
+    R1_pin: 42
+    G1_pin: 40
+    B1_pin: 41
+    R2_pin: 38
+    G2_pin: 37
+    B2_pin: 39
+    A_pin: 45
+    B_pin: 36
+    C_pin: 48
+    D_pin: 35
+    E_pin: 21
+    LAT_pin: 47
+    OE_pin: 14
+    CLK_pin: 2
+    clock_phase: false
+    i2sspeed: HZ_20M
+    brightness: 128
+    lambda: |-
+      int x = it.get_width() / 2;
+      int y = it.get_height() / 2;
+
+      Color white(255, 255, 255);
+      Color green(0, 255, 0);
+
+      // Check if time is synced
+      if (id(sntp_time).now().is_valid()) {
+        // Display time HH:MM:SS
+        it.strftime(x, y - 4, id(pixolletta), green, TextAlign::CENTER, "%H:%M:%S", id(sntp_time).now());
+        // Display date
+        it.strftime(x, y + 6, id(pixolletta), white, TextAlign::CENTER, "%d %b %Y", id(sntp_time).now());
+      } else {
+        it.printf(x, y, id(pixolletta), white, TextAlign::CENTER, "Syncing...");
+      }
+
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Bucharest
